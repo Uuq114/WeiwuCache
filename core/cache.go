@@ -10,7 +10,7 @@ import (
 type Cache struct {
 	elems                 map[string]CacheElem
 	mutex                 sync.RWMutex
-	defauluExpireDuration int64 // in second
+	defaultExpireDuration int64 // in second
 
 	// todo: callback function when evict elem
 }
@@ -18,16 +18,18 @@ type Cache struct {
 func (cache *Cache) Init() {
 	log.Println("init cache...")
 	cache.elems = make(map[string]CacheElem)
-	cache.defauluExpireDuration = int64(viper.GetInt("DefaultExpireDuration"))
+	cache.defaultExpireDuration = int64(viper.GetInt("DefaultExpireDuration"))
 }
 
 func (cache *Cache) SetWithDefaultExpiration(key string, value interface{}) bool {
-	elem := CacheElem{Object: value, ExpireTime: time.Now().Unix() + cache.defauluExpireDuration}
+	elem := NewElem(value, time.Now().Unix()+cache.defaultExpireDuration)
+	//elem := CacheElem{Object: value, ExpireTime: time.Now().Unix() + cache.defaultExpireDuration}
 	return cache.set(key, elem)
 }
 
 func (cache *Cache) SetWithExpiration(key string, value interface{}, expiration int64) bool {
-	elem := CacheElem{Object: value, ExpireTime: time.Now().Unix() + expiration}
+	elem := NewElem(value, expiration)
+	//elem := CacheElem{Object: value, ExpireTime: time.Now().Unix() + expiration}
 	return cache.set(key, elem)
 }
 

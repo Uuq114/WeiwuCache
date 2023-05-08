@@ -3,17 +3,31 @@ package core
 import "time"
 
 type CacheElem struct {
-	Object     interface{}
-	ExpireTime int64
+	object     interface{}
+	expireTime int64
 }
 
 func (elem *CacheElem) IsExpired() bool {
-	if elem.ExpireTime == 0 {
+	if elem.expireTime == 0 {
 		return false
 	}
-	return time.Now().Unix() > elem.ExpireTime
+	return time.Now().Unix() > elem.expireTime
 }
 
 func (elem *CacheElem) Value() interface{} {
-	return elem.Object
+	return elem.object
+}
+
+func NewDummyElem() CacheElem {
+	return CacheElem{
+		object:     "#",
+		expireTime: 0,
+	}
+}
+
+func NewElem(content interface{}, time int64) CacheElem {
+	return CacheElem{
+		object:     content,
+		expireTime: time,
+	}
 }
