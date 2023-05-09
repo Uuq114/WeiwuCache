@@ -3,10 +3,10 @@
 ## How to use
 **Interactive interface**
 ```bash
-./cache --port=6666
-127.0.0.1:6666> set weiwu caozei
+./cache
+> set weiwu caozei
 OK
-127.0.0.1:6666> get weiwu
+> get weiwu
 caozei
 ```
 

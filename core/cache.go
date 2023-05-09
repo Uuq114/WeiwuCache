@@ -1,15 +1,16 @@
 package core
 
 import (
+	"github.com/spf13/viper"
 	"log"
 	"sync"
 	"time"
 )
 
 type Cache struct {
-	elems             map[string]CacheElem
-	mutex             sync.RWMutex
-	defaultExpireTime int64 // in second
+	elems                 map[string]CacheElem
+	mutex                 sync.RWMutex
+	defaultExpireDuration int64 // in second
 
 	// todo: callback function when evict elem
 }
@@ -17,16 +18,18 @@ type Cache struct {
 func (cache *Cache) Init() {
 	log.Println("init cache...")
 	cache.elems = make(map[string]CacheElem)
-	cache.defaultExpireTime = 10
+	cache.defaultExpireDuration = int64(viper.GetInt("DefaultExpireDuration"))
 }
 
 func (cache *Cache) SetWithDefaultExpiration(key string, value interface{}) bool {
-	elem := CacheElem{Object: value, ExpireTime: time.Now().Unix() + cache.defaultExpireTime}
+	elem := NewElem(value, time.Now().Unix()+cache.defaultExpireDuration)
+	//elem := CacheElem{Object: value, ExpireTime: time.Now().Unix() + cache.defaultExpireDuration}
 	return cache.set(key, elem)
 }
 
 func (cache *Cache) SetWithExpiration(key string, value interface{}, expiration int64) bool {
-	elem := CacheElem{Object: value, ExpireTime: time.Now().Unix() + expiration}
+	elem := NewElem(value, expiration)
+	//elem := CacheElem{Object: value, ExpireTime: time.Now().Unix() + expiration}
 	return cache.set(key, elem)
 }
 
