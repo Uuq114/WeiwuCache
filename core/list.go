@@ -30,21 +30,42 @@ func (lst *List) Size() int64 {
 	return lst.Length
 }
 
-func (lst *List) Find(value interface{}) (interface{}, bool) {
+func (lst *List) Find(key interface{}) (interface{}, RespCode) {
 	for iterator := lst.dummyHead.Next; iterator != lst.dummyTail; iterator = iterator.Next {
 		// move node to list head
-		if iterator.Content.Value() == value {
+		if iterator.Content.Key() == key {
 			lst.remove(iterator)
 			lst.lPushNode(iterator)
-			return iterator.Content.Value(), true
+			if iterator.Content.IsExpired() {
+				return iterator.Content.Value(), Stale
+			} else {
+				return iterator.Content.Value(), HIT
+			}
 		}
 	}
-	return nil, false
+	return nil, MISS
 }
 
-func (lst *List) lPush(elem string, expiration int64) {
+func (lst *List) Add(elem CacheElem) {
+	lst.rPush(elem)
+}
+
+// Delete returns true if some elem is actually deleted, else returns false
+func (lst *List) Delete(key interface{}) bool {
+	for iterator := lst.dummyHead.Next; iterator != lst.dummyTail; iterator = iterator.Next {
+		// move node to list head
+		if iterator.Content.Key() == key {
+			lst.remove(iterator)
+			lst.lPushNode(iterator)
+			return true
+		}
+	}
+	return false
+}
+
+func (lst *List) lPush(elem CacheElem) {
 	node := ListNode{
-		Content: NewElem(elem, expiration),
+		Content: elem,
 		Prev:    nil,
 		Next:    nil,
 	}
@@ -65,9 +86,9 @@ func (lst *List) lPop() interface{} {
 	return node.Content.Value()
 }
 
-func (lst *List) rPush(elem interface{}, expiration int64) {
+func (lst *List) rPush(elem CacheElem) {
 	node := ListNode{
-		Content: NewElem(elem, expiration),
+		Content: elem,
 		Prev:    nil,
 		Next:    nil,
 	}
