@@ -1,5 +1,7 @@
 package core
 
+import "log"
+
 type ListNode struct {
 	Content CacheElem
 	Prev    *ListNode
@@ -23,6 +25,8 @@ func (lst *List) Init() {
 		Prev:    nil,
 		Next:    nil,
 	}
+	lst.dummyHead.Next = lst.dummyTail
+	lst.dummyTail.Prev = lst.dummyHead
 	lst.Length = 0
 }
 
@@ -34,20 +38,25 @@ func (lst *List) Find(key interface{}) (interface{}, RespCode) {
 	for iterator := lst.dummyHead.Next; iterator != lst.dummyTail; iterator = iterator.Next {
 		// move node to list head
 		if iterator.Content.Key() == key {
-			lst.remove(iterator)
+			lst.removeNode(iterator)
 			lst.lPushNode(iterator)
 			if iterator.Content.IsExpired() {
+				log.Printf("[INFO] list find stale, key: %s\n", iterator.Content.Key())
 				return iterator.Content.Value(), Stale
 			} else {
+				log.Printf("[INFO] list find fresh, key: %s\n", iterator.Content.Key())
 				return iterator.Content.Value(), HIT
 			}
 		}
 	}
+	log.Printf("[INFO] list find miss, key: %s\n", key)
 	return nil, MISS
 }
 
 func (lst *List) Add(elem CacheElem) {
 	lst.rPush(elem)
+	lst.Length += 1
+	log.Printf("[INFO] list add, key: %s\n", elem.Key())
 }
 
 // Delete returns true if some elem is actually deleted, else returns false
@@ -55,8 +64,9 @@ func (lst *List) Delete(key interface{}) bool {
 	for iterator := lst.dummyHead.Next; iterator != lst.dummyTail; iterator = iterator.Next {
 		// move node to list head
 		if iterator.Content.Key() == key {
-			lst.remove(iterator)
-			lst.lPushNode(iterator)
+			lst.removeNode(iterator)
+			lst.Length -= 1
+			log.Printf("[INFO] list delete, key: %s\n", key)
 			return true
 		}
 	}
@@ -109,7 +119,7 @@ func (lst *List) rPop() interface{} {
 	return node.Content.Value()
 }
 
-func (lst *List) remove(node *ListNode) {
+func (lst *List) removeNode(node *ListNode) {
 	node.Prev.Next = node.Next
 	node.Next.Prev = node.Prev
 }
