@@ -1,2 +1,2 @@
 # WeiwuCache
-High performance in-memory cache
+High performance in-memory cache written in golang.
